@@ -4,7 +4,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
 import { Home, Book, User, Layers, ArrowLeft } from 'lucide-react'
 import './index.css'
 
-const API_BASE_URL = 'https://ta-ppb-backend.vercel.app/api'; 
+const API_BASE_URL = 'https://ta-ppb-backend.vercel.app/api';
 
 // --- KOMPONEN PWABadge (Bawaan Modul) ---
 function PWABadge() {
@@ -49,7 +49,7 @@ function registerPeriodicSync(period, swUrl, r) {
 }
 
 // --- HALAMAN 1: HOME ---
-function HomePage() {
+function HomePage({ onNavigate }) { // 1. Terima props onNavigate
   return (
     <div className="p-6 pt-10">
       <div className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-6 text-white shadow-lg mb-6">
@@ -58,11 +58,20 @@ function HomePage() {
       </div>
       <h2 className="text-xl font-bold text-gray-800 mb-4">Akses Cepat</h2>
       <div className="grid grid-cols-2 gap-4">
-         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32">
+         {/* TOMBOL 1: LIHAT BUKU */}
+         <div 
+            onClick={() => onNavigate('books')} // 2. Navigasi ke halaman 'books'
+            className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32 cursor-pointer hover:scale-105 transition-transform active:bg-gray-50"
+         >
             <Book className="w-8 h-8 text-blue-500 mb-2" />
             <span className="font-medium text-gray-700">Lihat Buku</span>
          </div>
-         <div className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32">
+
+         {/* TOMBOL 2: KATEGORI */}
+         <div 
+            onClick={() => onNavigate('categories')} // 3. Navigasi ke halaman 'categories'
+            className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32 cursor-pointer hover:scale-105 transition-transform active:bg-gray-50"
+         >
             <Layers className="w-8 h-8 text-purple-500 mb-2" />
             <span className="font-medium text-gray-700">Kategori</span>
          </div>
@@ -287,7 +296,7 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home': return <HomePage />;
+      case 'home': return <HomePage onNavigate={handleNavigation} />;
       case 'books': return <BooksPage onNavigate={handleNavigation} />;
       case 'bookDetail': return <BookDetailPage bookId={selectedId} onBack={() => handleNavigation('books')} />;
       case 'categories': return <CategoriesPage onNavigate={handleNavigation} />;
