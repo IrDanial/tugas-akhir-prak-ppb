@@ -48,4 +48,4 @@ INSERT INTO books (title, author, year, description, cover_url, category_id) VAL
 ('Sapiens', 'Yuval Noah Harari', 2011, 'Riwayat singkat umat manusia dari zaman batu hingga modern.', 'https://m.media-amazon.com/images/I/41yu2qXhXXL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg', 3);
 
 INSERT INTO profiles (full_name, student_id, group_name, avatar_url, bio) VALUES
-('Nama Mahasiswa', '211201xxxxxx', 'Kelompok XX', 'https://ui-avatars.com/api/?name=Nama+Mahasiswa&background=random', 'Mahasiswa Teknik Komputer yang gemar membaca dan coding.');
+('Muhammad Danial Irfani', '21120123130061', 'Kelompok 24', 'https://scontent-sin2-3.cdninstagram.com/v/t51.2885-19/431447005_920377696294015_6210779198628712534_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=scontent-sin2-3.cdninstagram.com&_nc_cat=107&_nc_oc=Q6cZ2QGtkbRCEeAzpwy9cz33ma-uJh_GHEMf4HJosFXvEEX-l10U5_JcGVeKJXWC2fuY5Ml1Z19ISgwNfNsqKiLXgyJQ&_nc_ohc=a9QcHH_BS-AQ7kNvwEim-dB&_nc_gid=quIJ2s3CFcC9hQHl0w10FA&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_Afj6GsBzgjTiJVjm_3QtaN2W-73NZx4SQLxhhcCAMFrKLA&oe=692967DE&_nc_sid=7a9f4b', 'Mahasiswa Teknik Komputerrrr');
