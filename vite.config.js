@@ -20,12 +20,12 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
@@ -33,34 +33,35 @@ export default defineConfig({
       },
 
       workbox: {
-        // 1. Agar SW langsung aktif tanpa nunggu tab ditutup
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/],
+
         clientsClaim: true,
         skipWaiting: true,
+        cleanupOutdatedCaches: true,
         
-        // 2. Cache semua file aset lokal (js, css, html, gambar)
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
 
         runtimeCaching: [
           {
-            // 3. CACHE API (PENTING!)
-            // Menggunakan strategi 'StaleWhileRevalidate'
-            // Artinya: "Tampilkan cache lama dulu biar cepat/bisa offline, baru update dari internet"
-            urlPattern: ({ url }) => url.origin === 'https://ta-ppb-backend.vercel.app',
-            handler: 'StaleWhileRevalidate',
+            urlPattern: /^https:\/\/ta-ppb-backend\.vercel\.app\/api\/.*/i,
+            handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-cache',
+              cacheName: 'api-cache-v1',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7
+              },
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           },
           {
-            // 4. CACHE GAMBAR DARI INTERNET LAINNYA
-            // Sama, tampilkan dulu yang ada di memori
-            urlPattern: ({ request }) => request.destination === 'image',
+            urlPattern: /^https:\/\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'images-cache',
+              cacheName: 'images-cache-v1',
               cacheableResponse: {
                 statuses: [0, 200]
               }

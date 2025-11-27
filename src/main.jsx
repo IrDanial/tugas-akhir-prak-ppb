@@ -6,7 +6,7 @@ import './index.css'
 
 const API_BASE_URL = 'https://ta-ppb-backend.vercel.app/api';
 
-// --- KOMPONEN PWABadge (Bawaan Modul) ---
+// --- KOMPONEN PWABadge ---
 function PWABadge() {
   const period = 60 * 60 * 1000 
   const {
@@ -49,7 +49,7 @@ function registerPeriodicSync(period, swUrl, r) {
 }
 
 // --- HALAMAN 1: HOME ---
-function HomePage({ onNavigate }) { // 1. Terima props onNavigate
+function HomePage({ onNavigate }) {
   return (
     <div className="p-6 pt-10">
       <div className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-6 text-white shadow-lg mb-6">
@@ -60,7 +60,7 @@ function HomePage({ onNavigate }) { // 1. Terima props onNavigate
       <div className="grid grid-cols-2 gap-4">
          {/* TOMBOL 1: LIHAT BUKU */}
          <div 
-            onClick={() => onNavigate('books')} // 2. Navigasi ke halaman 'books'
+            onClick={() => onNavigate('books')}
             className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32 cursor-pointer hover:scale-105 transition-transform active:bg-gray-50"
          >
             <Book className="w-8 h-8 text-blue-500 mb-2" />
@@ -69,7 +69,7 @@ function HomePage({ onNavigate }) { // 1. Terima props onNavigate
 
          {/* TOMBOL 2: KATEGORI */}
          <div 
-            onClick={() => onNavigate('categories')} // 3. Navigasi ke halaman 'categories'
+            onClick={() => onNavigate('categories')}
             className="bg-white p-4 rounded-xl shadow border border-gray-100 flex flex-col items-center justify-center text-center h-32 cursor-pointer hover:scale-105 transition-transform active:bg-gray-50"
          >
             <Layers className="w-8 h-8 text-purple-500 mb-2" />
