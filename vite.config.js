@@ -15,60 +15,52 @@ export default defineConfig({
         description: 'Aplikasi Koleksi Buku Mahasiswa',
         theme_color: '#ffffff',
         background_color: '#ffffff',
-        display: 'standalone', 
-
-        start_url: './',
-        scopes: './',
-        orientation: 'portrait',
-
+        display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: 'pwa-192x192.png', 
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png', 
-            sizes: '512x512',
             type: 'image/png'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
+            type: 'image/png'
           }
         ]
       },
 
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
+        // 1. Agar SW langsung aktif tanpa nunggu tab ditutup
+        clientsClaim: true,
+        skipWaiting: true,
         
+        // 2. Cache semua file aset lokal (js, css, html, gambar)
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
+
         runtimeCaching: [
           {
-            // Cache API Backend Vercel
-            urlPattern: /^https:\/\/ta-ppb-backend\.vercel\.app\/api\/.*/i,
-            handler: 'NetworkFirst',
+            // 3. CACHE API (PENTING!)
+            // Menggunakan strategi 'StaleWhileRevalidate'
+            // Artinya: "Tampilkan cache lama dulu biar cepat/bisa offline, baru update dari internet"
+            urlPattern: ({ url }) => url.origin === 'https://ta-ppb-backend.vercel.app',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7
-              },
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           },
           {
-            urlPattern: /^https:\/\/.*/i,
-            handler: 'StaleWhileRevalidate', 
+            // 4. CACHE GAMBAR DARI INTERNET LAINNYA
+            // Sama, tampilkan dulu yang ada di memori
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'image-cache',
-              expiration: {
-                maxEntries: 100, 
-                maxAgeSeconds: 60 * 60 * 24 * 30
-              },
+              cacheName: 'images-cache',
               cacheableResponse: {
                 statuses: [0, 200]
               }
