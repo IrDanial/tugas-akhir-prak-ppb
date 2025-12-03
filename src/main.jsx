@@ -1,10 +1,12 @@
 import React, { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useRegisterSW } from 'virtual:pwa-register/react'
-import { Home, Book, User, Layers, ArrowLeft } from 'lucide-react'
+// Menambahkan icon Plus dan X
+import { Home, Book, User, Layers, ArrowLeft, Plus, X } from 'lucide-react'
 import './index.css'
 
-const API_BASE_URL = 'https://ta-ppb-backend.vercel.app/api';
+// const API_BASE_URL = 'https://ta-ppb-backend.vercel.app/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // --- KOMPONEN PWABadge ---
 function PWABadge() {
@@ -48,6 +50,106 @@ function registerPeriodicSync(period, swUrl, r) {
   }, period)
 }
 
+// --- KOMPONEN MODAL TAMBAH BUKU (BARU) ---
+function AddBookModal({ isOpen, onClose, onSuccess }) {
+  const [categories, setCategories] = useState([]);
+  const [formData, setFormData] = useState({
+    title: '', author: '', year: '', description: '', cover_url: '', category_id: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Ambil kategori untuk dropdown
+  useEffect(() => {
+    if (isOpen) {
+      fetch(`${API_BASE_URL}/categories`)
+        .then(res => res.json())
+        .then(data => setCategories(data));
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/books`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Buku berhasil ditambahkan!');
+        setFormData({ title: '', author: '', year: '', description: '', cover_url: '', category_id: '' });
+        onSuccess(); // Refresh daftar buku
+        onClose();   // Tutup modal
+      } else {
+        alert('Gagal menambahkan buku.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kesalahan koneksi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-800">Tambah Buku Baru</h2>
+          <button onClick={onClose}><X className="text-gray-500" /></button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase">Judul Buku</label>
+            <input required type="text" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase">Penulis</label>
+            <input required type="text" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase">Tahun</label>
+              <input required type="number" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase">Kategori</label>
+              <select required className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})}>
+                <option value="">Pilih...</option>
+                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase">URL Cover Gambar</label>
+            <input required type="url" placeholder="https://..." className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              value={formData.cover_url} onChange={e => setFormData({...formData, cover_url: e.target.value})} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase">Sinopsis</label>
+            <textarea required rows="3" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}></textarea>
+          </div>
+          
+          <button disabled={isSubmitting} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-400">
+            {isSubmitting ? 'Menyimpan...' : 'Simpan Buku'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // --- HALAMAN 1: HOME ---
 function HomePage({ onNavigate }) {
   return (
@@ -80,37 +182,63 @@ function HomePage({ onNavigate }) {
   )
 }
 
-// --- HALAMAN 2: DAFTAR BUKU (List 1) ---
+// --- HALAMAN 2: DAFTAR BUKU (DIUPDATE) ---
 function BooksPage({ onNavigate }) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
 
-  useEffect(() => {
+  const fetchBooks = () => {
+    setLoading(true);
     fetch(`${API_BASE_URL}/books`)
       .then(res => res.json())
       .then(data => { setBooks(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
+  };
+
+  useEffect(() => {
+    fetchBooks();
   }, []);
 
-  if (loading) return <div className="p-10 text-center">Memuat buku...</div>;
-
   return (
-    <div className="p-6 pb-24 pt-10">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Semua Buku</h1>
-      <div className="grid grid-cols-2 gap-4">
-        {books.map((book) => (
-          <div key={book.id} onClick={() => onNavigate('bookDetail', book.id)} className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-            <div className="aspect-[2/3] w-full bg-gray-200">
-               <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" 
-                    onError={(e) => {e.target.src = 'https://placehold.co/400x600?text=No+Image'}} />
-            </div>
-            <div className="p-3">
-              <h3 className="font-bold text-sm text-gray-800 line-clamp-2">{book.title}</h3>
-              <p className="text-xs text-gray-500 mt-1">{book.author}</p>
-            </div>
-          </div>
-        ))}
+    <div className="p-6 pb-24 pt-10 relative min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Semua Buku</h1>
       </div>
+
+      {loading ? (
+        <div className="p-10 text-center">Memuat buku...</div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          {books.map((book) => (
+            <div key={book.id} onClick={() => onNavigate('bookDetail', book.id)} className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:scale-105 transition-transform">
+              <div className="aspect-[2/3] w-full bg-gray-200">
+                 <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" 
+                      onError={(e) => {e.target.src = 'https://placehold.co/400x600?text=No+Image'}} />
+              </div>
+              <div className="p-3">
+                <h3 className="font-bold text-sm text-gray-800 line-clamp-2">{book.title}</h3>
+                <p className="text-xs text-gray-500 mt-1">{book.author}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* FLOATING ACTION BUTTON (TOMBOL TAMBAH) */}
+      <button 
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-24 right-6 bg-blue-600 text-white p-4 rounded-full shadow-xl hover:bg-blue-700 hover:scale-110 transition-all z-40 flex items-center justify-center"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
+      {/* MODAL FORM */}
+      <AddBookModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchBooks} 
+      />
     </div>
   );
 }
